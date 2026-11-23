@@ -7,6 +7,6 @@ alembic>=1.20,<1.21
 psycopg[binary]>=3.3,<3.4
 pydantic>=2.14,<3
 email-validator>=2.3,<3
-python-dotenv>=1.2,<2
+python-dotenv>=1.2.4,<2
 openai>=3.37,<4  # cliente oficial para OpenAI Responses API (CU-004, ADR 0011), Apache-2.0
 waitress>=3.0,<4  # servidor WSGI de producción en Windows (ADR 0006), ZPL-2.1
