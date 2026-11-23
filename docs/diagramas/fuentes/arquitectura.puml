@@ -1,0 +1,62 @@
+@startuml arquitectura
+' Arquitectura de ReMate. Detalle en docs/diseno/arquitectura.md
+' Cómo generar las imágenes: ver docs/diagramas/README.md
+
+title ReMate — Arquitectura
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam defaultFontName Arial
+left to right direction
+
+actor "Ingeniero" as usuario
+
+package "Frontend (React + Tailwind, frontend/)" as fe {
+  component "Páginas\n(panel, nueva necesidad,\ndetalle por pasos, comparativa,\ninformación SAP, listas,\nmodo admin)" as paginas
+  component "Componentes\n(formularios, tablas,\nzona de arrastre, avisos)" as componentes
+  component "Cliente de la API\n(fetch a /api)" as cliente
+}
+
+package "Backend (Flask, backend/app/)" as be {
+  component "API REST /api\n(flask-openapi3 + Swagger UI,\nvalidación con Pydantic)" as api
+  component "Servicios de negocio\n(código AAAAMMDDNN, estados,\ncomparativa, plazos, formato SAP)" as servicios
+  component "Modelos\n(SQLAlchemy)" as modelos
+  component "Cliente de IA\n(biblioteca openai, Responses API:\nleer ofertas, redactar petición\ny adjudicación)" as ia
+  component "Lector de correos\n(.eml y .msg)" as lector
+  component "Generador de .eml" as eml
+  component "Envío de correo (SMTP):\nrecordatorio y aviso\ndel pedido SAP" as smtp
+  component "Almacén de archivos\n(carpeta en disco)" as archivos
+  component "Comando diario\nflask enviar-recordatorios\n(recordatorios, avisos\ndel pedido SAP, caducidad)" as cli
+  component "Frontend compilado\n(dist/ servido por Flask;\nWaitress + WinSW en producción)" as estaticos
+  component "Modo admin\n(contraseña con hash,\nsesión en /api/admin)" as admin
+  component "Registro (logs)\ntabla logs;\nrespaldo en remate.log" as registro
+}
+
+database "PostgreSQL 18\n(migraciones con Alembic)" as db
+cloud "IA: API de OpenAI\n(desarrollo y producción)" as nube
+cloud "Servidor SMTP\nde la organización" as servidor_smtp
+
+usuario --> paginas
+paginas --> componentes
+paginas --> cliente
+cliente --> api : HTTP / JSON
+usuario ..> estaticos : carga la interfaz
+
+api --> servicios
+api --> admin : /api/admin
+admin --> servicios
+servicios --> modelos
+modelos --> db
+servicios --> ia
+servicios --> lector
+servicios --> eml
+servicios --> archivos
+servicios --> smtp : aviso del paso 5
+ia --> nube : HTTPS
+cli --> servicios
+cli --> smtp
+smtp --> servidor_smtp
+servicios ..> registro
+registro --> db
+
+@enduml

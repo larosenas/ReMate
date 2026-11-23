@@ -1,0 +1,63 @@
+@startuml estados-necesidad
+' Estados de una necesidad. Detalle en docs/diseno/estados-necesidad.md
+' Cómo generar las imágenes: ver docs/diagramas/README.md
+
+title ReMate — Estados de una necesidad
+
+skinparam shadowing false
+skinparam defaultFontName Arial
+hide empty description
+
+state "Necesidad creada" as creada
+state "En cotización" as cotizacion
+state "En evaluación" as evaluacion
+state "Pendiente solicitud SAP" as solicitud
+state "Pendiente pedido SAP" as pedido
+state "Pendiente entrega" as entrega
+state "Entregado" as entregado
+state "Cancelada" as cancelada
+
+[*] --> creada : 1. Crear necesidad\n(código AAAAMMDDNN)
+
+creada --> cotizacion : 2. Elegir proveedores y\ngenerar .eml de solicitud (CCO)
+
+cotizacion --> cotizacion : Añadir oferta recibida\n(sin analizar)
+cotizacion --> evaluacion : 3. Analizar y comparar\n(la IA lee todas las ofertas;\nal menos 1 oferta)
+
+evaluacion --> evaluacion : Añadir más ofertas / revisar\ndatos extraídos por la IA\n(no se descarta ninguna)
+evaluacion --> solicitud : 4. Seleccionar proveedor\n(con todas las ofertas revisadas;\ntexto y tabla SAP, .eml al adjudicatario,\nfecha de entrega inicial)
+
+solicitud --> pedido : 5. Confirmar pedido metido en SAP\n(confirmar o actualizar fecha prevista;\nno cuenta como retraso)
+
+pedido --> entrega : 6. Adjuntar pedido SAP oficial\n(.eml al proveedor con el pedido)
+
+entrega --> entrega : Registrar retraso (nueva fecha + motivo)\n[rearma el recordatorio]
+note left of entrega
+  7 días antes de la fecha prevista:
+  correo de recordatorio al peticionario
+  (tarea diaria, ADR 0004)
+end note
+entrega --> entregado : 7. Confirmar entrega
+
+entregado --> [*]
+
+creada -[dashed]-> cancelada : Cancelar (motivo)
+cotizacion -[dashed]-> cancelada
+evaluacion -[dashed]-> cancelada
+solicitud -[dashed]-> cancelada
+pedido -[dashed]-> cancelada
+entrega -[dashed]-> cancelada
+cancelada --> [*]
+
+note right of cancelada
+  Desde cualquier estado salvo Entregado.
+  Se guarda el motivo y se conserva
+  el histórico.
+end note
+
+note right of entregado
+  Caso cerrado. Se guarda el histórico
+  (también el de retrasos del proveedor).
+end note
+
+@enduml

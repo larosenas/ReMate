@@ -1,0 +1,41 @@
+#!/bin/sh
+# Escaneo de secretos antes de cada commit. Sin dependencias: solo git y grep.
+# Se activa una vez por clon con: git config core.hooksPath scripts/hooks
+# Revisa solo las líneas añadidas en los cambios preparados (staged). Si detecta algo, cancela el commit.
+# Falso positivo: revisa el aviso y, solo si estás seguro, repite con: git commit --no-verify
+
+encontrado=0
+
+# 1. Archivos de entorno con valores reales (.env, .env.local…). .env.example sí se sube.
+envs=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '(^|/)\.env(\..+)?$' | grep -vE '\.env\.example$')
+if [ -n "$envs" ]; then
+    echo "Escaneo de secretos: no se suben archivos .env (usa .env.example con valores ficticios):"
+    echo "$envs" | sed 's/^/  /'
+    encontrado=1
+fi
+
+# 2. Claves y tokens con formato reconocible en las líneas añadidas.
+patrones='sk-or-v1-[0-9a-f]{32,}'            # OpenRouter
+patrones="$patrones|sk-(proj-|svcacct-)?[A-Za-z0-9_-]{32,}"  # OpenAI
+patrones="$patrones|-----BEGIN [A-Z ]*PRIVATE KEY-----"      # claves privadas
+patrones="$patrones|gh[pousr]_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{40,}"  # GitHub
+patrones="$patrones|AKIA[0-9A-Z]{16}"                         # AWS
+# URL con contraseña. No cuenta si la contraseña es una variable: {self.db_contrasena} o ${DB_PASSWORD}.
+patrones="$patrones|postgres(ql)?(\+[a-z0-9]+)?://[^:/@[:space:]]+:[^@[:space:]{}\$<>%]+@"
+
+coincidencias=$(git diff --cached -U0 --diff-filter=ACMR -- . ':(exclude)scripts/hooks/pre-commit' \
+    | awk '/^\+\+\+ /{archivo=substr($0, 7); next} /^@@/{split($3, r, ","); n=substr(r[1], 2); next}
+           /^\+/{print archivo ":" n "\t" substr($0, 2); n++}' \
+    | grep -E "$patrones")
+if [ -n "$coincidencias" ]; then
+    echo "Escaneo de secretos: posibles claves o contraseñas en los cambios (archivo:línea):"
+    # Solo se muestra dónde está, no la línea, para no volcar el secreto en la terminal.
+    echo "$coincidencias" | cut -f1 | sed 's/^/  /'
+    encontrado=1
+fi
+
+if [ "$encontrado" -ne 0 ]; then
+    echo "Commit cancelado. Quita el secreto (y, si ya se subió alguna vez, revoca la clave)."
+    exit 1
+fi
+exit 0

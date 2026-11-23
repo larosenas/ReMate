@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+/* Identidad visual de ReMate: acero y petróleo (guía en docs/diseno/guia-de-estilo.md).
+   El acento cumple AA (unos 6:1) como texto sobre blanco y con texto blanco encima. */
+@theme {
+  --color-marca-oscuro: #17262f;
+  --color-marca-acento: #0b6e6e;
+  --color-marca-acento-oscuro: #08514f;
+  --color-marca-acento-claro: #4fb3a9;
+  --color-marca-ambar: #e3a72f;
+  --color-marca-tarjeta: #34495a;
+  --color-marca-texto: #1c2329;
+  --font-sans: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Foco visible con el teclado en todos los controles, en el color de acento. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-marca-acento);
+    outline-offset: 2px;
+  }
+  /* Los campos de texto y los desplegables ya marcan el foco con su borde (las casillas, no:
+     conservan el contorno). */
+  input:not([type='checkbox']):not([type='radio']):focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: none;
+  }
+}

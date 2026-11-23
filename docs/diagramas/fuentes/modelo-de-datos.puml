@@ -1,0 +1,197 @@
+@startuml modelo-de-datos
+' Modelo de datos de ReMate. Detalle en docs/diseno/modelo-de-datos.md
+' Cómo generar las imágenes: ver docs/diagramas/README.md
+
+title ReMate — Modelo de datos
+
+hide circle
+skinparam linetype ortho
+skinparam shadowing false
+skinparam defaultFontName Arial
+
+entity "Peticionario" as peticionario {
+  * id
+  --
+  * nombre_completo
+  * email <<único entre no eliminados>>
+  * activo
+  * creado_en
+  eliminado_en
+  motivo_eliminacion
+}
+
+entity "CodigoBorrado" as codigo_borrado {
+  * codigo <<PK, el de una necesidad borrada>>
+  --
+  * borrado_en
+}
+
+entity "AvisadoPedidoSap" as avisado {
+  * id
+  --
+  * nombre
+  * email <<único entre no eliminados>>
+  * activo
+  * creado_en
+  eliminado_en
+  motivo_eliminacion
+}
+
+entity "Proveedor" as proveedor {
+  * id
+  --
+  * nombre
+  * email <<único entre no eliminados>>
+  * activo
+  * creado_en
+  eliminado_en
+  motivo_eliminacion
+}
+
+entity "Necesidad" as necesidad {
+  * id
+  --
+  * codigo <<único, AAAAMMDDNN>>
+  * titulo
+  * proyecto
+  * descripcion
+  * estado
+  * peticionario_id <<FK>>
+  * creada_en
+  oferta_adjudicada_id <<FK>>
+  texto_sap
+  fecha_entrega_inicial
+  fecha_entrega_prevista
+  numero_pedido_sap
+  fecha_entrega_real
+  comentario_entrega
+  recordatorio_enviado_en
+  aviso_pedido_sap_en
+  motivo_cancelacion
+  motivo_pocos_proveedores
+}
+
+entity "ProveedorSolicitado" as solicitado {
+  * necesidad_id <<FK>>
+  * proveedor_id <<FK>>
+  --
+  * solicitado_en
+}
+
+entity "Oferta" as oferta {
+  * id
+  --
+  * necesidad_id <<FK>>
+  * proveedor_id <<FK>>
+  fecha_correo (envío del proveedor)
+  remitente
+  asunto
+  * registrada_en
+  numero_oferta
+  moneda (código de tres letras)
+  importe_sin_iva (total ofertado)
+  plazo_entrega_texto (tal cual)
+  fecha_entrega_estimada
+  condiciones_pago
+  condiciones (JSON: 9 condiciones con estado y texto)
+  otros (información adicional)
+  datos_ia (JSON)
+  * revisada
+  * estado_oferta (vigente, sustituida, borrada)
+}
+
+entity "LineaOferta" as linea {
+  * id
+  --
+  * oferta_id <<FK>>
+  * orden
+  * descripcion (Short Text)
+  * cantidad (decimal)
+  * precio_unitario (sin IVA)
+  fecha_entrega
+}
+
+entity "Adjunto" as adjunto {
+  * id
+  --
+  * necesidad_id <<FK>>
+  oferta_id <<FK>>
+  * tipo (necesidad, solicitud, correo de oferta, adjudicación,\nadjunto de oferta, pedido SAP,
+correo del pedido SAP, respuesta del proveedor)
+  * nombre_archivo
+  * ruta
+  * tipo_mime
+  formato (pdf, excel, word, imagen, otro)
+  * tamano
+  * subido_en
+  caducado_en
+}
+
+entity "Retraso" as retraso {
+  * id
+  --
+  * necesidad_id <<FK>>
+  * fecha_anterior
+  * fecha_nueva
+  * motivo
+  * peticionario_id <<FK>>
+  * registrado_en
+}
+
+entity "CambioEstado" as cambio {
+  * id
+  --
+  * necesidad_id <<FK>>
+  estado_anterior
+  * estado_nuevo
+  * peticionario_id <<FK>>
+  * cambiado_en
+}
+
+entity "CambioPeticionario" as cambio_peticionario {
+  * id
+  --
+  * necesidad_id <<FK>>
+  * peticionario_anterior_id <<FK>>
+  * peticionario_nuevo_id <<FK>>
+  * cambiado_en
+}
+
+entity "Log" as registro {
+  * id <<PK>>
+  --
+  * creado_en
+  * nivel
+  * origen
+  * mensaje
+  traza
+}
+note right of registro
+  Registro de la aplicación (logs, ADR 0008).
+  Sin relaciones; guarda 6 meses (ADR 0014).
+end note
+
+peticionario ||--o{ necesidad : "hace"
+necesidad ||--o{ solicitado : "pide oferta a"
+proveedor ||--o{ solicitado
+necesidad ||--o{ oferta : "recibe"
+proveedor ||--o{ oferta : "envía"
+oferta ||--o{ linea : "contiene"
+necesidad |o--o| oferta : "adjudicada a"
+necesidad ||--o{ adjunto
+oferta |o--o{ adjunto
+necesidad ||--o{ retraso
+necesidad ||--o{ cambio : "historial"
+peticionario ||--o{ cambio : "lo hace"
+peticionario ||--o{ retraso : "lo registra"
+necesidad ||--o{ cambio_peticionario : "pasa a otro"
+peticionario ||--o{ cambio_peticionario
+
+note bottom of necesidad
+  estado: Necesidad creada, En cotización,
+  En evaluación, Pendiente solicitud SAP,
+  Pendiente pedido SAP, Pendiente entrega, Entregado,
+  Cancelada
+end note
+
+@enduml

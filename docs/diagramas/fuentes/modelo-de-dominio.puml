@@ -1,0 +1,124 @@
+@startuml modelo-de-dominio
+' Modelo de dominio de ReMate. Detalle en docs/diseno/modelo-de-dominio.md
+' Conceptos del negocio, sin tablas ni columnas (eso es modelo-de-datos.puml).
+' Cómo generar las imágenes: ver docs/diagramas/README.md
+
+title ReMate — Modelo de dominio
+
+hide circle
+hide methods
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam classAttributeIconSize 0
+
+class Peticionario {
+  nombre y apellido
+  correo
+}
+
+class Proveedor {
+  nombre
+  correo
+}
+
+class Necesidad {
+  código AAAAMMDDNN
+  título, proyecto
+  descripción
+  estado
+}
+
+class "Documento de la necesidad" as Documento {
+  plano, foto…
+}
+
+class "Solicitud de ofertas" as Solicitud {
+  correo en copia oculta
+}
+
+class Oferta {
+  importe sin IVA
+  plazo de entrega
+  condiciones
+}
+
+class "Línea de oferta" as Linea {
+  descripción
+  cantidad
+  precio unitario sin IVA
+}
+
+class Adjudicacion as "Adjudicación" {
+  fecha de entrega inicial
+}
+
+class "Información para SAP" as InfoSap {
+  texto
+  tabla de líneas
+}
+
+class "Pedido SAP" as PedidoSap {
+  número
+  PDF del pedido
+}
+
+class Retraso {
+  fecha anterior → nueva
+  motivo
+}
+
+class Entrega {
+  fecha real
+}
+
+class Recordatorio {
+  una semana antes
+}
+
+class "Cambio de estado" as CambioEstado {
+  de → a
+  cuándo
+}
+
+class "Cambio de peticionario" as CambioPeticionario {
+  de → a
+  por la baja de…
+}
+
+class "Histórico del proveedor" as Historico {
+  pedidos
+  con retraso
+  retraso medio por pedido
+}
+
+Peticionario "1" -- "*" Necesidad : lleva >
+Necesidad "1" *-- "*" Documento
+Necesidad "1" -- "0..1" Solicitud : pide oferta >
+Solicitud "*" -- "1..*" Proveedor : se envía a >
+Necesidad "1" -- "*" Oferta : recibe >
+Proveedor "1" -- "*" Oferta : envía >
+Oferta "1" *-- "*" Linea
+Necesidad "1" -- "0..1" Adjudicacion
+Adjudicacion "*" -- "1" Oferta : elige >
+Adjudicacion "1" -- "1" InfoSap : prepara >
+Necesidad "1" -- "0..1" PedidoSap
+Necesidad "1" -- "*" Retraso
+Necesidad "1" -- "0..1" Entrega
+Necesidad "1" -- "*" Recordatorio
+Necesidad "1" *-- "*" CambioEstado : historial
+CambioEstado "*" -- "1" Peticionario : lo da >
+Necesidad "1" -- "*" CambioPeticionario
+Proveedor "1" -- "1" Historico : tiene >
+Historico ..> Retraso : resume
+
+note right of Oferta
+  La lee la IA; el ingeniero la revisa.
+  Una por proveedor: la nueva sustituye a la anterior.
+end note
+
+note bottom of Necesidad
+  7 pasos en orden, más «Cancelada».
+  Un solo proveedor adjudicado.
+end note
+
+@enduml

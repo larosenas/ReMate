@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- WinSW 2.12.0 (ADR 0009). Colocar remate-servicio.exe junto a este XML.
+     Instalar sin arrancar; asignar cuenta, inicio automático y recuperación
+     en services.msc antes del primer inicio. Sin credenciales en este archivo. -->
+<service>
+  <id>ReMate</id>
+  <name>ReMate</name>
+  <description>Gestión de compras de repuestos de ingeniería (Waitress).</description>
+  <executable>%BASE%\..\..\backend\.venv\Scripts\python.exe</executable>
+  <arguments>-m app.servir --log "%BASE%\..\..\..\logs\remate.log"</arguments>
+  <workingdirectory>%BASE%\..\..\backend</workingdirectory>
+  <startmode>Manual</startmode>
+  <stoptimeout>30 sec</stoptimeout>
+  <logpath>%BASE%\..\..\..\logs</logpath>
+  <log mode="append" />
+</service>

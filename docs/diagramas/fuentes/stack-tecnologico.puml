@@ -1,0 +1,63 @@
+@startuml stack-tecnologico
+' Stack tecnológico de ReMate (ADR 0003, 0009, 0011 y 0016).
+' Cómo generar las imágenes: ver docs/diagramas/README.md
+
+title ReMate — Stack tecnológico
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam defaultFontName Arial
+
+actor "Ingeniero\n(peticionario)" as usuario
+
+node "Navegador" as navegador {
+  component "Frontend\n(build de Vite: dist/)" as front {
+    [React 19] as react
+    [Tailwind CSS 4] as tailwind
+    [React Router 8] as router
+  }
+}
+
+node "Servidor de la organización\n(Windows Server, solo red interna)" as servidor {
+  component "Proxy inverso (opcional)\npor ejemplo Caddy\n(entrada por un nombre)" as proxy
+  component "Backend\nPython 3.15, con Waitress\n(servicio WinSW 2.12.0)" as back {
+    [Flask 3\n(API REST /api,\ndocumentada con Swagger)] as api
+    [SQLAlchemy 2 + Alembic\n(ORM y migraciones)] as orm
+    [Generador de .eml] as eml
+    [Recordatorio de entrega\n(tarea diaria)] as correo
+    [Registro (logs)\n(tabla logs)] as registro
+  }
+  database "PostgreSQL 18" as db
+}
+
+cloud "Servicios externos" {
+  [API de OpenAI\n(Responses API; IA en\ndesarrollo y producción)] as openai
+  [Servidor SMTP\nde la organización] as smtp
+}
+
+usuario --> navegador : usa
+react ..> tailwind : estilos
+react ..> router : navegación
+front --> proxy : HTTP(S) / JSON
+proxy --> api : HTTP (X-Forwarded-For)
+front ..> api : sin proxy:\nHTTP directo
+api --> orm
+orm --> db : SQL (psycopg)
+api --> eml : archivos .eml\n(se descargan)
+api --> openai : HTTPS (biblioteca openai)
+correo --> orm : fechas de entrega
+correo --> smtp : SMTP
+registro --> db : SQL
+
+note bottom of front
+  Entrega: npm run build
+  y se entrega la carpeta dist/
+  (en producción la sirve Flask)
+end note
+
+note bottom of back
+  Entrega: código fuente
+  (.venv + pip install -r requirements.txt)
+end note
+
+@enduml

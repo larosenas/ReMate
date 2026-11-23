@@ -1,0 +1,12 @@
+# Dependencias de producción del backend (ADR 0003 y 0004).
+Flask>=3.1,<3.2
+flask-openapi3>=4.3,<4.4
+flask-openapi3-swagger>=5.31,<6
+SQLAlchemy>=2.1,<2.2
+alembic>=1.20,<1.21
+psycopg[binary]>=3.3,<3.4
+pydantic>=2.14,<3
+email-validator>=2.3,<3
+python-dotenv>=1.2,<2
+openai>=3.37,<4  # cliente oficial para OpenAI Responses API (CU-004, ADR 0011), Apache-2.0
+waitress>=3.0,<4  # servidor WSGI de producción en Windows (ADR 0006), ZPL-2.1

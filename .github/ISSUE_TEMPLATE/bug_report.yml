@@ -1,0 +1,42 @@
+name: Bug report
+description: Something does not work as expected.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting it. For a security problem, do not use this form: follow SECURITY.md.
+        Please do not paste real data (supplier quotes, emails, names, API keys or passwords).
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open a need in the "Quotes" step
+        2. Upload a .msg file
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error messages or logs
+      description: Error shown on screen, browser console or server log, if any.
+      render: text
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      placeholder: e.g. a1b2c3d
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: e.g. Windows Server 2025, Python 3.15, PostgreSQL 18, Edge

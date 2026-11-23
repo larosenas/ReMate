@@ -1,0 +1,43 @@
+# Secretos y configuración local
+.env
+.env.*
+!.env.example
+
+# Sistema operativo y editores
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Presentaciones con datos de contacto (no versionar)
+*.pptx
+
+# Logs
+*.log
+
+# Node.js (frontend)
+node_modules/
+dist/
+coverage/
+npm-debug.log*
+
+# Python (backend)
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Exportaciones de la extensión PlantUML de VS Code (las imágenes van en docs/diagramas/salidas/)
+out/
+
+
+# Carpeta local de archivos subidos en desarrollo (ARCHIVOS_DIR=./archivos)
+archivos/
+
+# WinSW se obtiene de la release oficial al instalar (ADR 0009).
+/scripts/windows/remate-servicio.exe
+/scripts/windows/WinSW-LICENSE.txt

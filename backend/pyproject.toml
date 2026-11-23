@@ -1,0 +1,32 @@
+# Configuración de las herramientas del backend (pytest, cobertura y Ruff).
+# Las dependencias se gestionan con requirements.txt y requirements-dev.txt.
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.coverage.run]
+source = ["app"]
+
+[tool.ruff]
+target-version = "py315"
+line-length = 100
+extend-exclude = ["migraciones/versions"]
+
+[tool.ruff.lint]
+# Además de las básicas: seguridad (S, reglas de Bandit), fechas con zona horaria (DTZ),
+# simplificaciones (SIM), estilo de pytest (PT) y reglas propias de Ruff (RUF).
+select = ["E", "F", "W", "I", "UP", "B", "S", "DTZ", "SIM", "PT", "RUF"]
+# RUF001: la tipografía española («–», «×») es intencionada.
+ignore = ["RUF001"]
+
+[tool.ruff.lint.per-file-ignores]
+# En las pruebas: assert, contraseñas de mentira y fechas sin zona horaria a propósito.
+"tests/**" = ["S101", "S105", "S106", "DTZ001"]
+
+# Cobertura: `pytest --cov` falla si baja del mínimo. El mínimo deja margen sobre la cobertura
+# actual y evita que entre lógica nueva sin pruebas.
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+skip_covered = true
