@@ -32,7 +32,17 @@ from app.servicios import ofertas
 
 CORREOS = (".eml", ".msg")
 FORMATOS = {".pdf": "pdf", ".docx": "word", ".docm": "word", ".xlsx": "excel", ".xlsm": "excel"}
-ESPECIALES = ("esperado.json", "necesidad.txt")  # sin mayúsculas: en Windows da igual
+ESPECIALES = ("esperado.json", "necesidad.txt")
+
+
+def _buscar(carpeta: Path, nombre: str) -> Path | None:
+    """El archivo `nombre` de la carpeta sin mirar mayúsculas («Esperado.json»), como en Windows,
+    también en Linux; None si no está."""
+    if not carpeta.is_dir():
+        return None
+    return next(
+        (a for a in sorted(carpeta.iterdir()) if a.is_file() and a.name.lower() == nombre), None
+    )
 
 
 def _especial(archivo: Path) -> bool:
@@ -74,8 +84,8 @@ def preparar_caso(carpeta: Path) -> tuple[adjuntos_ia.Contenido, SimpleNamespace
         datos_ia=None,
         lineas=[],
     )
-    necesidad = carpeta / "necesidad.txt"
-    if necesidad.is_file():
+    necesidad = _buscar(carpeta, "necesidad.txt")
+    if necesidad is not None:
         titulo, _, descripcion = necesidad.read_text(encoding="utf-8-sig").partition("\n")
         contenido.texto(
             "Lo que pidió el cliente (no es parte de la oferta)",
@@ -180,7 +190,7 @@ def _formato_esperado(esperado) -> str | None:
 def probar_caso(config: Config, carpeta: Path) -> Resultado:
     resultado = Resultado(carpeta.name)
     try:
-        esperado = json.loads((carpeta / "esperado.json").read_text(encoding="utf-8-sig"))
+        esperado = json.loads(_buscar(carpeta, "esperado.json").read_text(encoding="utf-8-sig"))
         if problema := _formato_esperado(esperado):
             resultado.error = problema
             return resultado
@@ -212,5 +222,5 @@ def probar_caso(config: Config, carpeta: Path) -> Resultado:
 
 def probar(config: Config, carpeta: Path) -> list[Resultado]:
     """Un resultado por cada subcarpeta con `esperado.json`, en orden alfabético."""
-    casos = sorted(c for c in carpeta.iterdir() if (c / "esperado.json").is_file())
+    casos = sorted(c for c in carpeta.iterdir() if _buscar(c, "esperado.json") is not None)
     return [probar_caso(config, caso) for caso in casos]

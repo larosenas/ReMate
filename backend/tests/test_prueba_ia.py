@@ -132,9 +132,9 @@ def test_un_esperado_raro_no_tira_los_demas_casos(app, tmp_path, monkeypatch):
 
 
 def test_nombres_en_mayusculas_y_casos_vacios(app, tmp_path, monkeypatch):
-    """En Windows, «Esperado.json» o «Necesidad.txt» no se mandan a la IA como parte de la
-    oferta; un caso sin oferta no se paga; y un necesidad.txt con BOM no lleva el carácter al
-    título."""
+    """«Esperado.json» y «Necesidad.txt» se reconocen sin mirar mayúsculas, también en Linux, y
+    no se mandan a la IA como parte de la oferta; un caso sin oferta no se paga; y un
+    necesidad.txt con BOM no lleva el carácter al título."""
     recibido = []
     monkeypatch.setattr(ia, "leer_oferta", lambda _c, partes: recibido.append(partes) or RESPUESTA)
     caso = tmp_path / "1-mayusculas"
